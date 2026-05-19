@@ -13,16 +13,24 @@ import type {
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
+function getCookie(name: string): string | undefined {
+  const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+  return match ? decodeURIComponent(match[2]) : undefined;
+}
+
 async function adminFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const xsrfToken = getCookie("XSRF-TOKEN");
+
   const res = await fetch(`${BASE_URL}/api/admin${path}`, {
     ...options,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
+      ...(xsrfToken && { "X-XSRF-TOKEN": xsrfToken }),
       ...options.headers,
     },
   });
