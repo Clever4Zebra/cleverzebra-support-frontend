@@ -5,11 +5,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:8000/api/:path*",
+        destination: "https://support-api.cleverzebra.nl/api/:path*",
       },
       {
         source: "/sanctum/:path*",
-        destination: "http://localhost:8000/sanctum/:path*",
+        destination: "https://support-api.cleverzebra.nl/sanctum/:path*",
       },
     ];
   },
