@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 export default function EditCategoryPage({
@@ -32,6 +33,8 @@ export default function EditCategoryPage({
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [parentId, setParentId] = useState<string>("");
+  const [isEmailProtected, setIsEmailProtected] = useState(false);
+  const [allowedDomains, setAllowedDomains] = useState("");
 
   useEffect(() => {
     Promise.all([getCategory(Number(id)), getCategories()]).then(
@@ -41,6 +44,8 @@ export default function EditCategoryPage({
         setSlug(cat.slug);
         setDescription(cat.description || "");
         setParentId(cat.parent_id ? String(cat.parent_id) : "");
+        setIsEmailProtected(cat.is_email_protected);
+        setAllowedDomains(cat.allowed_email_domains?.join(", ") || "");
         setCategories(allRes.data.filter((c) => c.id !== Number(id)));
         setFetching(false);
       }
@@ -57,6 +62,10 @@ export default function EditCategoryPage({
         slug,
         description: description || null,
         parent_id: parentId ? Number(parentId) : null,
+        is_email_protected: isEmailProtected,
+        allowed_email_domains: isEmailProtected && allowedDomains.trim()
+          ? allowedDomains.split(",").map((d) => d.trim()).filter(Boolean)
+          : null,
       });
       toast.success("Category updated");
       router.push("/admin/categories");
@@ -118,6 +127,34 @@ export default function EditCategoryPage({
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
           />
+        </div>
+
+        <div className="space-y-4 rounded-lg border p-4">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={isEmailProtected}
+              onCheckedChange={setIsEmailProtected}
+              id="email-protected"
+            />
+            <Label htmlFor="email-protected">Email protected</Label>
+          </div>
+          {isEmailProtected && (
+            <div className="space-y-2">
+              <Label htmlFor="allowed-domains">
+                Allowed email domains (comma-separated)
+              </Label>
+              <Input
+                id="allowed-domains"
+                value={allowedDomains}
+                onChange={(e) => setAllowedDomains(e.target.value)}
+                placeholder="example.com, company.nl"
+              />
+              <p className="text-xs text-muted-foreground">
+                Only users with email addresses from these domains will have access.
+                Articles in this category will also be protected.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-4">

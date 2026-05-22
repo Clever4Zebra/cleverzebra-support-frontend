@@ -30,6 +30,8 @@ export default function NewArticlePage() {
   const [categoryId, setCategoryId] = useState<string>("");
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [publish, setPublish] = useState(false);
+  const [isEmailProtected, setIsEmailProtected] = useState(false);
+  const [allowedDomains, setAllowedDomains] = useState("");
 
   useEffect(() => {
     getCategories().then((res) => setCategories(res.data));
@@ -48,6 +50,10 @@ export default function NewArticlePage() {
         category_id: categoryId ? Number(categoryId) : null,
         tag_ids: selectedTags,
         published_at: publish ? new Date().toISOString() : null,
+        is_email_protected: isEmailProtected,
+        allowed_email_domains: isEmailProtected && allowedDomains.trim()
+          ? allowedDomains.split(",").map((d) => d.trim()).filter(Boolean)
+          : null,
       });
       toast.success("Article created");
       router.push("/admin/articles");
@@ -137,6 +143,33 @@ export default function NewArticlePage() {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="space-y-4 rounded-lg border p-4">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={isEmailProtected}
+              onCheckedChange={setIsEmailProtected}
+              id="email-protected"
+            />
+            <Label htmlFor="email-protected">Email protected</Label>
+          </div>
+          {isEmailProtected && (
+            <div className="space-y-2">
+              <Label htmlFor="allowed-domains">
+                Allowed email domains (comma-separated)
+              </Label>
+              <Input
+                id="allowed-domains"
+                value={allowedDomains}
+                onChange={(e) => setAllowedDomains(e.target.value)}
+                placeholder="example.com, company.nl"
+              />
+              <p className="text-xs text-muted-foreground">
+                Only users with email addresses from these domains will have access.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">

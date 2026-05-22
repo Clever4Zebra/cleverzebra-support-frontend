@@ -9,12 +9,22 @@ import type {
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-async function fetchAPI<T>(path: string): Promise<T> {
+async function fetchAPI<T>(path: string, options?: { email?: string }): Promise<T> {
   const url = `${BASE_URL}/api${path}`;
-  const res = await fetch(url, { next: { revalidate: 60 } });
+  const headers: Record<string, string> = {};
+  if (options?.email) {
+    headers["X-User-Email"] = options.email;
+  }
+
+  const res = await fetch(url, {
+    next: { revalidate: 60 },
+    headers,
+  });
 
   if (!res.ok) {
-    throw new Error(`API error: ${res.status} ${res.statusText} for ${path}`);
+    const error = new Error(`API error: ${res.status} ${res.statusText} for ${path}`);
+    (error as any).status = res.status;
+    throw error;
   }
 
   return res.json();
@@ -25,8 +35,8 @@ export async function getCategories(): Promise<{ data: Category[] }> {
   return fetchAPI("/categories");
 }
 
-export async function getCategory(slug: string): Promise<{ data: Category }> {
-  return fetchAPI(`/categories/${encodeURIComponent(slug)}`);
+export async function getCategory(slug: string, email?: string): Promise<{ data: Category }> {
+  return fetchAPI(`/categories/${encodeURIComponent(slug)}`, { email });
 }
 
 // Tags
@@ -55,8 +65,8 @@ export async function getArticles(params?: {
   return fetchAPI(`/articles${query ? `?${query}` : ""}`);
 }
 
-export async function getArticle(slug: string): Promise<{ data: Article }> {
-  return fetchAPI(`/articles/${encodeURIComponent(slug)}`);
+export async function getArticle(slug: string, email?: string): Promise<{ data: Article }> {
+  return fetchAPI(`/articles/${encodeURIComponent(slug)}`, { email });
 }
 
 // Walkthroughs

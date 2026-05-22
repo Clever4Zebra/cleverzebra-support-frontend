@@ -15,6 +15,8 @@ export interface AdminArticle {
   excerpt: string | null;
   category_id: number | null;
   published_at: string | null;
+  is_email_protected: boolean;
+  allowed_email_domains: string[] | null;
   created_at: string;
   updated_at: string;
   category?: { id: number; name: string; slug: string } | null;
@@ -27,6 +29,8 @@ export interface AdminCategory {
   slug: string;
   description: string | null;
   parent_id: number | null;
+  is_email_protected: boolean;
+  allowed_email_domains: string[] | null;
   parent?: { id: number; name: string } | null;
   articles_count?: number;
   children_count?: number;

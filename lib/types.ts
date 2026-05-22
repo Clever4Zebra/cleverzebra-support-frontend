@@ -8,6 +8,7 @@ export interface Category {
   name: string;
   slug: string;
   description: string | null;
+  is_email_protected: boolean;
   created_at: string;
   updated_at: string;
   _links: {
@@ -37,6 +38,7 @@ export interface Article {
   body: string;
   excerpt: string | null;
   published_at: string;
+  is_email_protected: boolean;
   created_at: string;
   updated_at: string;
   category: Category | null;
