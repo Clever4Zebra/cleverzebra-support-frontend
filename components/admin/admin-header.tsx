@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
 export function AdminHeader() {
-  const { user, logout } = useAuth();
+  const { user, logout, currentRole, isSuperAdmin } = useAuth();
+
+  const displayRole = isSuperAdmin ? "Super Admin" : currentRole ?? "—";
 
   return (
     <header className="border-b px-6 py-3 flex items-center justify-between bg-background">
@@ -16,7 +18,7 @@ export function AdminHeader() {
         <span className="text-sm">
           {user?.name}{" "}
           <span className="text-muted-foreground capitalize">
-            ({user?.role})
+            ({displayRole})
           </span>
         </span>
         <Button variant="ghost" size="sm" onClick={logout}>

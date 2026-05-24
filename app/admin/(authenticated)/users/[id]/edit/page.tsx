@@ -37,7 +37,7 @@ export default function EditUserPage({
       if (user) {
         setName(user.name);
         setEmail(user.email);
-        setRole(user.role);
+        setRole(user.current_organization_role ?? "viewer");
       }
       setFetching(false);
     });
@@ -51,7 +51,6 @@ export default function EditUserPage({
       await updateUser(Number(id), {
         name,
         email,
-        role: role as "admin" | "editor",
         ...(password ? { password } : {}),
       });
       toast.success("User updated");
@@ -109,8 +108,10 @@ export default function EditUserPage({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="viewer">Viewer</SelectItem>
               <SelectItem value="editor">Editor</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="owner">Owner</SelectItem>
             </SelectContent>
           </Select>
         </div>

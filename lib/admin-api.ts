@@ -8,6 +8,8 @@ import type {
   AdminWalkthroughStep,
   AdminStepChoice,
   DashboardStats,
+  Organization,
+  OrganizationMember,
   PaginatedResponse,
 } from "./admin-types";
 
@@ -37,6 +39,40 @@ async function adminFetch<T>(
 
   if (res.status === 401) {
     throw new Error("Unauthenticated");
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `Request failed: ${res.status}`);
+  }
+
+  if (res.status === 204) return {} as T;
+  return res.json();
+}
+
+async function superAdminFetch<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const xsrfToken = getCookie("XSRF-TOKEN");
+
+  const res = await fetch(`${BASE_URL}/api/super-admin${path}`, {
+    ...options,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(xsrfToken && { "X-XSRF-TOKEN": xsrfToken }),
+      ...options.headers,
+    },
+  });
+
+  if (res.status === 401) {
+    throw new Error("Unauthenticated");
+  }
+
+  if (res.status === 403) {
+    throw new Error("Super Admin access required");
   }
 
   if (!res.ok) {
@@ -341,4 +377,79 @@ export async function updateUser(
 
 export async function deleteUser(id: number): Promise<void> {
   await adminFetch(`/users/${id}`, { method: "DELETE" });
+}
+
+// ============ Super Admin: Organizations ============
+
+export async function getOrganizations(
+  params?: Record<string, string>
+): Promise<PaginatedResponse<Organization>> {
+  const query = params ? "?" + new URLSearchParams(params).toString() : "";
+  return superAdminFetch(`/organizations${query}`);
+}
+
+export async function getOrganization(
+  id: number
+): Promise<{ data: Organization }> {
+  return superAdminFetch(`/organizations/${id}`);
+}
+
+export async function createOrganization(
+  data: Partial<Organization>
+): Promise<{ data: Organization }> {
+  return superAdminFetch("/organizations", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateOrganization(
+  id: number,
+  data: Partial<Organization>
+): Promise<{ data: Organization }> {
+  return superAdminFetch(`/organizations/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteOrganization(id: number): Promise<void> {
+  await superAdminFetch(`/organizations/${id}`, { method: "DELETE" });
+}
+
+// Organization Members
+export async function getOrganizationMembers(
+  organizationId: number
+): Promise<{ data: OrganizationMember[] }> {
+  return superAdminFetch(`/organizations/${organizationId}/members`);
+}
+
+export async function addOrganizationMember(
+  organizationId: number,
+  data: { user_id: number; role: string }
+): Promise<{ message: string }> {
+  return superAdminFetch(`/organizations/${organizationId}/members`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateOrganizationMember(
+  organizationId: number,
+  userId: number,
+  data: { role: string }
+): Promise<{ message: string }> {
+  return superAdminFetch(`/organizations/${organizationId}/members/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function removeOrganizationMember(
+  organizationId: number,
+  userId: number
+): Promise<void> {
+  await superAdminFetch(`/organizations/${organizationId}/members/${userId}`, {
+    method: "DELETE",
+  });
 }

@@ -29,7 +29,7 @@ export default function NewUserPage() {
     setLoading(true);
 
     try {
-      await createUser({ name, email, password, role: role as "admin" | "editor" });
+      await createUser({ name, email, password });
       toast.success("User created");
       router.push("/admin/users");
     } catch (err) {
@@ -84,8 +84,10 @@ export default function NewUserPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="viewer">Viewer</SelectItem>
               <SelectItem value="editor">Editor</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="owner">Owner</SelectItem>
             </SelectContent>
           </Select>
         </div>

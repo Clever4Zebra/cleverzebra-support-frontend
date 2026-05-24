@@ -80,9 +80,9 @@ export default function UsersPage() {
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <Badge
-                    variant={user.role === "admin" ? "default" : "secondary"}
+                    variant={user.current_organization_role === "owner" || user.current_organization_role === "admin" ? "default" : "secondary"}
                   >
-                    {user.role}
+                    {user.current_organization_role ?? "—"}
                   </Badge>
                 </TableCell>
                 <TableCell>

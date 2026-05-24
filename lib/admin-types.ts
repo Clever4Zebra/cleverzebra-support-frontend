@@ -2,9 +2,43 @@ export interface AdminUser {
   id: number;
   name: string;
   email: string;
-  role: "admin" | "editor";
+  is_super_admin: boolean;
+  organizations: AdminUserOrganization[];
+  current_organization_role?: OrganizationRole | null;
   created_at: string;
   updated_at: string;
+}
+
+export type OrganizationRole = "owner" | "admin" | "editor" | "viewer";
+
+export interface AdminUserOrganization {
+  id: number;
+  name: string;
+  slug: string;
+  role: OrganizationRole;
+}
+
+export interface Organization {
+  id: number;
+  name: string;
+  slug: string;
+  domain: string | null;
+  logo_url: string | null;
+  settings: Record<string, unknown> | null;
+  users_count?: number;
+  articles_count?: number;
+  categories_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrganizationMember {
+  id: number;
+  name: string;
+  email: string;
+  role: OrganizationRole;
+  is_super_admin: boolean;
+  joined_at: string;
 }
 
 export interface AdminArticle {

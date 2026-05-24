@@ -10,8 +10,10 @@ import {
   MessageSquare,
   Users,
   LayoutDashboard,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "./auth-provider";
+import { OrgSwitcher } from "./org-switcher";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -25,23 +27,33 @@ const navItems = [
     label: "Support Requests",
     icon: MessageSquare,
   },
-  { href: "/admin/users", label: "Users", icon: Users, adminOnly: true },
+  { href: "/admin/users", label: "Members", icon: Users, roles: ["owner", "admin"] as string[] },
+  { href: "/admin/organizations", label: "Organizations", icon: Building2, superAdminOnly: true },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, isSuperAdmin, currentRole } = useAuth();
 
   return (
     <aside className="w-64 border-r bg-muted/30 min-h-screen p-4">
-      <div className="mb-8">
+      <div className="mb-4">
         <Link href="/admin" className="text-lg font-semibold">
           KB Admin
         </Link>
       </div>
-      <nav className="space-y-1">
+      {user && <OrgSwitcher />}
+      <nav className="space-y-1 mt-4">
         {navItems
-          .filter((item) => !item.adminOnly || user?.role === "admin")
+          .filter((item) => {
+            if ('superAdminOnly' in item && item.superAdminOnly) {
+              return isSuperAdmin;
+            }
+            if ('roles' in item && item.roles) {
+              return isSuperAdmin || (currentRole && item.roles.includes(currentRole));
+            }
+            return true;
+          })
           .map((item) => {
             const isActive =
               pathname === item.href ||
