@@ -10,6 +10,7 @@ import {
 } from "react";
 import type { AdminUser, AdminUserOrganization, OrganizationRole } from "@/lib/admin-types";
 import * as api from "@/lib/admin-api";
+import { setOrganizationSlug } from "@/lib/organization-context";
 
 interface AuthContextType {
   user: AdminUser | null;
@@ -28,6 +29,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentOrganization, setCurrentOrganization] = useState<AdminUserOrganization | null>(null);
+
+  // Sync organization slug to module-level store for API calls
+  useEffect(() => {
+    setOrganizationSlug(currentOrganization?.slug ?? null);
+  }, [currentOrganization]);
 
   useEffect(() => {
     api

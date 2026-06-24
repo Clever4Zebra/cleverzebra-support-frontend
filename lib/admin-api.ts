@@ -12,6 +12,7 @@ import type {
   OrganizationMember,
   PaginatedResponse,
 } from "./admin-types";
+import { getOrganizationSlug } from "./organization-context";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -25,6 +26,7 @@ async function adminFetch<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const xsrfToken = getCookie("XSRF-TOKEN");
+  const orgSlug = getOrganizationSlug();
 
   const res = await fetch(`${BASE_URL}/api/admin${path}`, {
     ...options,
@@ -33,6 +35,7 @@ async function adminFetch<T>(
       "Content-Type": "application/json",
       Accept: "application/json",
       ...(xsrfToken && { "X-XSRF-TOKEN": xsrfToken }),
+      ...(orgSlug && { "X-Organization": orgSlug }),
       ...options.headers,
     },
   });
