@@ -1,6 +1,7 @@
 import type {
   AdminArticle,
   AdminCategory,
+  AdminMedia,
   AdminSupportRequest,
   AdminTag,
   AdminUser,
@@ -380,6 +381,48 @@ export async function updateUser(
 
 export async function deleteUser(id: number): Promise<void> {
   await adminFetch(`/users/${id}`, { method: "DELETE" });
+}
+
+// Media
+export async function getMedia(
+  params?: Record<string, string>
+): Promise<PaginatedResponse<AdminMedia>> {
+  const query = params ? "?" + new URLSearchParams(params).toString() : "";
+  return adminFetch(`/media${query}`);
+}
+
+export async function uploadMedia(
+  file: File,
+  altText?: string
+): Promise<{ data: AdminMedia }> {
+  const xsrfToken = getCookie("XSRF-TOKEN");
+  const orgSlug = getOrganizationSlug();
+
+  const formData = new FormData();
+  formData.append("file", file);
+  if (altText) formData.append("alt_text", altText);
+
+  const res = await fetch(`${BASE_URL}/api/admin/media`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+      ...(xsrfToken && { "X-XSRF-TOKEN": xsrfToken }),
+      ...(orgSlug && { "X-Organization": orgSlug }),
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `Upload failed: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+export async function deleteMedia(id: number): Promise<void> {
+  await adminFetch(`/media/${id}`, { method: "DELETE" });
 }
 
 // ============ Super Admin: Organizations ============

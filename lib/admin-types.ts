@@ -147,3 +147,14 @@ export interface PaginatedResponse<T> {
     total: number;
   };
 }
+
+export interface AdminMedia {
+  id: number;
+  filename: string;
+  url: string;
+  mime_type: string;
+  size: number;
+  alt_text: string | null;
+  created_at: string;
+}
+

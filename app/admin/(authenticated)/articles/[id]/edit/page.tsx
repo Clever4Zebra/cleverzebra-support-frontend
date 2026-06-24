@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useRef, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import {
   getArticle,
@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { ImageIcon } from "lucide-react";
+import { ImagePicker } from "@/components/admin/image-picker";
 
 export default function EditArticlePage({
   params,
@@ -44,6 +46,8 @@ export default function EditArticlePage({
   const [publish, setPublish] = useState(false);
   const [isEmailProtected, setIsEmailProtected] = useState(false);
   const [allowedDomains, setAllowedDomains] = useState("");
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     Promise.all([
@@ -102,6 +106,23 @@ export default function EditArticlePage({
     );
   }
 
+  function handleImageInsert(url: string, altText: string) {
+    const markdown = `![${altText}](${url})`;
+    const textarea = bodyRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newBody = body.slice(0, start) + markdown + body.slice(end);
+      setBody(newBody);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = start + markdown.length;
+      }, 0);
+    } else {
+      setBody((prev) => prev + "\n" + markdown);
+    }
+  }
+
   if (fetching) {
     return <div className="text-muted-foreground">Loading...</div>;
   }
@@ -142,8 +163,20 @@ export default function EditArticlePage({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="body">Body (Markdown)</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="body">Body (Markdown)</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setImagePickerOpen(true)}
+            >
+              <ImageIcon className="mr-1 h-4 w-4" />
+              Insert Image
+            </Button>
+          </div>
           <Textarea
+            ref={bodyRef}
             id="body"
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -235,6 +268,12 @@ export default function EditArticlePage({
           </Button>
         </div>
       </form>
+
+      <ImagePicker
+        open={imagePickerOpen}
+        onOpenChange={setImagePickerOpen}
+        onInsert={handleImageInsert}
+      />
     </div>
   );
 }

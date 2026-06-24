@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createArticle, getCategories, getTags } from "@/lib/admin-api";
 import type { AdminCategory, AdminTag } from "@/lib/admin-types";
@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { ImageIcon } from "lucide-react";
+import { ImagePicker } from "@/components/admin/image-picker";
 
 export default function NewArticlePage() {
   const router = useRouter();
@@ -32,6 +34,8 @@ export default function NewArticlePage() {
   const [publish, setPublish] = useState(false);
   const [isEmailProtected, setIsEmailProtected] = useState(false);
   const [allowedDomains, setAllowedDomains] = useState("");
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     getCategories().then((res) => setCategories(res.data));
@@ -72,6 +76,24 @@ export default function NewArticlePage() {
     );
   }
 
+  function handleImageInsert(url: string, altText: string) {
+    const markdown = `![${altText}](${url})`;
+    const textarea = bodyRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newBody = body.slice(0, start) + markdown + body.slice(end);
+      setBody(newBody);
+      // Set cursor after inserted text
+      setTimeout(() => {
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = start + markdown.length;
+      }, 0);
+    } else {
+      setBody((prev) => prev + "\n" + markdown);
+    }
+  }
+
   return (
     <div className="max-w-3xl space-y-6">
       <h1 className="text-2xl font-semibold">New Article</h1>
@@ -99,8 +121,20 @@ export default function NewArticlePage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="body">Body (Markdown)</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="body">Body (Markdown)</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setImagePickerOpen(true)}
+            >
+              <ImageIcon className="mr-1 h-4 w-4" />
+              Insert Image
+            </Button>
+          </div>
           <Textarea
+            ref={bodyRef}
             id="body"
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -190,6 +224,12 @@ export default function NewArticlePage() {
           </Button>
         </div>
       </form>
+
+      <ImagePicker
+        open={imagePickerOpen}
+        onOpenChange={setImagePickerOpen}
+        onInsert={handleImageInsert}
+      />
     </div>
   );
 }
